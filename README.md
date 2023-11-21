@@ -49,7 +49,13 @@ The format is set to match the `// BUG(who): summary` format described in
 The `context` allows linking to a ticket, which is often useful in commercial
 projects.
 
-The linter can automatically fix `// TODO(foo)bar` -> `// TODO(foo): bar`.
+## Auto fix
+
+The linter can automatically fix minor formatting issues, such as updating
+`// TODO(foo)bar` to `// TODO(foo): bar`.
+
+If no context is provided (`TODO: foo`), the linter can add context with the
+current username, such as `TODO(akupila): foo`.
 
 ## Credits
 

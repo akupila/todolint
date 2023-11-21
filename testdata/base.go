@@ -16,6 +16,7 @@ TODO: Multi-line comments are ignored
 // TODO(test) Make a pizza // want `TODO should follow the format '// TODO\(context\): text'`
 // TODO(test):Make a pizza // want `TODO should follow the format '// TODO\(context\): text'`
 // TODO                    // want `TODO should include additional context: TODO\(<context>\)`
-// TODO(): Make a pizza    // want `TODO context does not match regular expression: \\w+`
+// TODO(): Make a pizza    // want `TODO should include additional context: TODO\(<context>\)`
 // TODO: Make a pizza      // want `TODO should include additional context: TODO\(<context>\)`
 // TODO(test):             // want `TODO should describe what needs to change`
+// TODO(~): Make a pizza   // want `TODO context does not match regular expression: \\w+`

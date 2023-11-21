@@ -2,8 +2,11 @@ package todolint
 
 import (
 	"fmt"
+	"os"
+	"os/user"
 	"regexp"
 	"strings"
+	"sync"
 
 	"golang.org/x/tools/go/analysis"
 )
@@ -40,6 +43,17 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		keywords[i] = strings.TrimSpace(keyword)
 	}
 
+	username := sync.OnceValue(func() string {
+		if u := os.Getenv("USER"); u != "" {
+			return u
+		}
+		u, err := user.Current()
+		if err != nil {
+			return ""
+		}
+		return u.Username
+	})
+
 	for _, file := range pass.Files {
 		for _, group := range file.Comments {
 			for _, c := range group.List {
@@ -69,8 +83,28 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				space := match[4]
 				summary := match[5]
 
-				if paren == "" {
-					pass.Reportf(c.Pos(), "%s should include additional context: %s(<context>)", keyword, keyword)
+				if paren == "" || context == "" {
+					diag := analysis.Diagnostic{
+						Pos:     c.Pos(),
+						Message: fmt.Sprintf("%s should include additional context: %s(<context>)", keyword, keyword),
+					}
+					if summary != "" {
+						if u := username(); contextRe.MatchString(u) {
+							diag.SuggestedFixes = []analysis.SuggestedFix{
+								{
+									Message: fmt.Sprintf("Set context to current user (%s)", u),
+									TextEdits: []analysis.TextEdit{
+										{
+											Pos:     c.Pos(),
+											End:     c.End(),
+											NewText: []byte(fmt.Sprintf("// %s(%s): %s", keyword, u, summary)),
+										},
+									},
+								},
+							}
+						}
+					}
+					pass.Report(diag)
 					continue
 				}
 				if !contextRe.MatchString(context) {
